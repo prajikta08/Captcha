@@ -1,68 +1,70 @@
+import { getIronSession } from "iron-session";
+import { sessionOptions } from "../lib/sessionOptions";
+import { newCaptchaImages } from "./api/captcha-image";
 import Captcha from "../components/Captcha";
-import {useState} from "react";
-import {withIronSessionSsr} from 'iron-session/next';
-import {newCaptchaImages} from "./api/captcha-image";
+import { useState } from "react";
 
-export default function Home({defaultCaptchaKey}) {
-  const [message,setMessage] = useState('');
-  const [selectedIndexes,setSelectedIndexes] = useState([]);
+export default function Home({ defaultCaptchaKey }) {
+  const [message, setMessage] = useState("");
+  const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [captchaKey, setCaptchaKey] = useState(defaultCaptchaKey);
+
   function send() {
     if (!message) {
-      alert('The message is required')
+      alert("The message is required");
       return;
     }
-    fetch('/api/send', {
-      method: 'POST',
+
+    fetch("/api/send", {
+      method: "POST",
       body: JSON.stringify({
         message,
-        selectedIndexes
+        selectedIndexes,
       }),
-      headers: {'Content-Type':'application/json'},
-    }).then(response => {
-      response.json().then(json => {
+      headers: { "Content-Type": "application/json" },
+    }).then((response) => {
+      response.json().then((json) => {
         if (json.sent) {
-          setCaptchaKey((new Date()).getTime());
-          alert('message sent');
-          setMessage('');
+          setCaptchaKey(Date.now());
+          alert("message sent");
+          setMessage("");
         }
         if (!json.captchaIsOk) {
-          setCaptchaKey((new Date()).getTime());
-          alert('wrong captcha. try again');
+          setCaptchaKey(Date.now());
+          alert("wrong captcha. try again");
         }
-      })
+      });
     });
   }
+
   return (
     <main>
-      <input type="text"
-             onChange={e => setMessage(e.target.value)}
-             placeholder="Message" value={message}/>
+      <input
+        type="text"
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Message"
+        value={message}
+      />
       <div>
         <Captcha captchaKey={captchaKey} onChange={setSelectedIndexes} />
       </div>
       <button onClick={send}>Send</button>
     </main>
-  )
+  );
 }
 
-export const getServerSideProps = withIronSessionSsr(
-  async ({ req }) => {
-    if (!req.session.captchaImages) {
-      req.session.captchaImages = newCaptchaImages();
-      await req.session.save();
-    }
-    return {
-      props: {
-        defaultCaptchaKey: Date.now(),
-      },
-    };
-  },
-  {
-    cookieName: 'session',
-    password: process.env.SESSION_SECRET,
-    cookieOptions: {
-      secure: process.env.NODE_ENV === 'production',
-    },
+// ✅ Correctly using getIronSession here
+export async function getServerSideProps({ req, res }) {
+  const session = await getIronSession(req, res, sessionOptions);
+
+  if (!session.captchaImages) {
+    session.captchaImages = newCaptchaImages();
+    await session.save();
   }
-);
+
+  return {
+    props: {
+      defaultCaptchaKey: Date.now(),
+    },
+  };
+}
