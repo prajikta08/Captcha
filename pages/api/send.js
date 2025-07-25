@@ -1,5 +1,5 @@
 import {withIronSessionApiRoute} from "iron-session/next";
-import {newCaptchaImages} from "./captcha-image";
+import { newCaptchaImages } from "../../lib/captchaUtils";
 
 export default withIronSessionApiRoute(async function handler(req,res) {
   const {message,selectedIndexes} = req.body;

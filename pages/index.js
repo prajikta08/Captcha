@@ -1,6 +1,6 @@
 import { getIronSession } from "iron-session";
 import { sessionOptions } from "../lib/sessionOptions";
-import { newCaptchaImages } from "./api/captcha-image";
+import { newCaptchaImages } from "../lib/captchaUtils";
 import Captcha from "../components/Captcha";
 import { useState } from "react";
 
