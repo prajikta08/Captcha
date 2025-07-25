@@ -46,19 +46,23 @@ export default function Home({defaultCaptchaKey}) {
   )
 }
 
-export const getServerSideProps = withIronSessionSsr(async ({req}) => {
-  {
+export const getServerSideProps = withIronSessionSsr(
+  async ({ req }) => {
     if (!req.session.captchaImages) {
       req.session.captchaImages = newCaptchaImages();
       await req.session.save();
     }
     return {
-      props:{
-        defaultCaptchaKey: (new Date).getTime(),
-      }
+      props: {
+        defaultCaptchaKey: Date.now(),
+      },
     };
+  },
+  {
+    cookieName: 'session',
+    password: process.env.SESSION_SECRET,
+    cookieOptions: {
+      secure: process.env.NODE_ENV === 'production',
+    },
   }
-}, {
-  cookieName: 'session',
-  password: process.env.SESSION_SECRET,
-});
+);

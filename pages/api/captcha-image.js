@@ -30,4 +30,7 @@ export default withIronSessionApiRoute(async function handler(req, res) {
 }, {
   cookieName: 'session',
   password: process.env.SESSION_SECRET,
+   cookieOptions: {
+    secure: process.env.NODE_ENV === 'production',
+  },
 });
